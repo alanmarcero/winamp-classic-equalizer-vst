@@ -14,8 +14,8 @@ public:
     struct BiquadState {
         std::array<float, 3> sEqB { 1.0f, 2.0f, 1.0f };
         std::array<float, 3> sEqA { 1.0f, 2.0f, 1.0f };
-        std::array<float, 3> zEqB { 1.0f, 0.0f, 0.0f };
-        std::array<float, 3> zEqA { 1.0f, 0.0f, 0.0f };
+        std::array<double, 3> zEqB { 1.0, 0.0, 0.0 };
+        std::array<double, 3> zEqA { 1.0, 0.0, 0.0 };
         std::array<double, 2> xn { 0.0, 0.0 };
         std::array<double, 2> yn { 0.0, 0.0 };
         int memPos = 0;
