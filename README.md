@@ -29,6 +29,10 @@ The reference is the Winamp source release, as mirrored at [alexfreud/winamp](ht
 - **64-step sliders and preamp**: every slider steps through Winamp's `0..63` integer positions (`0` = +12 dB, `31` = 0 dB, `63` = -12 dB). Preamp uses the 64-entry `eq_lookup1` table (`4.0` down to `0.25`, with `1.0` at `31`), and the 10 bands use `VALTODB`'s asymmetric dB mapping (`-12 * v / 31` for boost, `-12 * v / 32` for cut). When **ON** is off or all 11 sliders sit at `31`, the DSP bypasses completely.
 - **Spline graph & UI interaction**: `draw_eq_graphthingy` evaluates Justin Frankel's Plush 1.2 spline (`tension = 0.1`) across 109 columns over the 113 x 19 graph box and colors each vertical span from the 19-row gradient strip alongside the preamp line. Dragging horizontally across the 10 bands sweeps them in a single stroke, sliders snap to `0 dB` (`30..32 -> 31`) unless `Shift` is held, and clicking the `+12 dB`, `+0 dB`, or `-12 dB` labels sets all 10 bands at once.
 
+### One deliberate difference
+
+Winamp's `eq_set` in `Src/Winamp/In.cpp` (line 1264) scans for the last non-flat band with `for ( x = 9; x >= 0 && data[x] == 31; x++ )`. It counts up instead of down. When the 16 kHz slider is not flat, `filter_top2` becomes `9`, so Winamp's Constant-Q engine never processes the 16 kHz band. When that slider is flat, the loop reads past the end of the array. This plugin does not reproduce that bug: all 10 Constant-Q bands follow their sliders. The 4Front engine does not use `filter_top2`, so it matches Winamp in both cases.
+
 ## Options
 
 Select **PRESETS** on the equalizer window for Winamp's preset menu, or select **Settings** (or right-click anywhere on the window) for the Equalizer options menu. Double-click the titlebar or select the titlebar button to toggle Windowshade mode.
