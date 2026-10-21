@@ -66,7 +66,7 @@ The unit tests cover the core in `Source/Core` and need no JUCE.
 
 ## Install
 
-Download the artifact for your platform from the latest run on the repo's Actions page. GitHub wraps each artifact in a zip, so unzip it once to get the plugin's zip, then unzip that.
+Download the ZIP for your platform from [GitHub Releases](https://github.com/alanmarcero/winamp-classic-equalizer-vst/releases/latest), then unzip it. Tagged releases publish only after unit tests and pluginval pass on both platforms.
 
 ### macOS
 
