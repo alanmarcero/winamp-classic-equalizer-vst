@@ -19,6 +19,12 @@ EqualizerEditor::EqualizerEditor(EqualizerProcessor& owner)
     settingsButton_.onClick = [this] { showOptionsMenu(); };
     addAndMakeVisible(settingsButton_);
 
+    versionLabel_.setText("v1.1.0", juce::dontSendNotification);
+    versionLabel_.setJustificationType(juce::Justification::centred);
+    versionLabel_.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
+    versionLabel_.setFont(juce::FontOptions(11.0f));
+    addAndMakeVisible(versionLabel_);
+
     eqWindow_.setCustomSkin(processor_.customSkin());
     eqWindow_.setWindowshade(processor_.windowshade.load());
     lastSettings_ = params::readSettings(processor_.parameters);
@@ -43,7 +49,9 @@ void EqualizerEditor::paint(juce::Graphics& g)
 
 void EqualizerEditor::resized()
 {
-    settingsButton_.setBounds(getLocalBounds().removeFromBottom(kButtonHeight));
+    auto bottomBar = getLocalBounds().removeFromBottom(kButtonHeight);
+    versionLabel_.setBounds(bottomBar.removeFromRight(60));
+    settingsButton_.setBounds(bottomBar);
 }
 
 juce::Point<int> EqualizerEditor::toWinampCoords(juce::Point<int> localPos) const
