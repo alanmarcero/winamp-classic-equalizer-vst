@@ -19,7 +19,7 @@ EqualizerEditor::EqualizerEditor(EqualizerProcessor& owner)
     settingsButton_.onClick = [this] { showOptionsMenu(); };
     addAndMakeVisible(settingsButton_);
 
-    versionLabel_.setText("v1.1.0", juce::dontSendNotification);
+    versionLabel_.setText("v" JucePlugin_VersionString, juce::dontSendNotification);
     versionLabel_.setJustificationType(juce::Justification::centred);
     versionLabel_.setColour(juce::Label::textColourId, juce::Colours::lightgrey);
     versionLabel_.setFont(juce::FontOptions(11.0f));

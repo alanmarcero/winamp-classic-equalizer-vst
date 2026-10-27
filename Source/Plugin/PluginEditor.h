@@ -44,7 +44,7 @@ private:
     juce::Image image_ { juce::Image::RGB, wce::kWindowWidth, wce::kWindowHeight, true };
     std::unique_ptr<juce::FileChooser> chooser_;
     juce::TextButton settingsButton_ { "Settings" };
-    juce::Label versionLabel_ { {}, "v1.1.0" };
+    juce::Label versionLabel_;
     bool dragging_ = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EqualizerEditor)
