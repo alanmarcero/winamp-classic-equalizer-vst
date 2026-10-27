@@ -1,6 +1,12 @@
 # Winamp Classic Equalizer (VST3)
 
+[Install with OpenVST Manager](https://github.com/alanmarcero/alan-m-OpenVSTManager/releases/latest)
+
 The 10-band graphic equalizer from Winamp's classic Equalizer window, as a VST3 effect. It reproduces both the 275 x 116 classic Equalizer interface (including the Plush spline response graph, Windowshade mode, custom `eqmain.bmp` skin loading, and `.eqf` preset files) and both of Winamp's EQ DSP engines (**Winamp 4Front EQ** and **Constant-Q EQ**).
+
+![Winamp Classic Equalizer native editor](assets/native-ui.png)
+
+*Captured from the released v1.1.0 VST3 editor. [Capture details and provenance](docs/SCREENSHOTS.md).*
 
 ## About
 
@@ -40,31 +46,42 @@ Select **PRESETS** on the equalizer window for Winamp's preset menu, or select *
 | Option | Values | Default |
 |---|---|---|
 | Equalizer enabled (ON) | on, off | on |
-| Auto-load (AUTO) | on, off | off |
+| Auto-load (AUTO) | Stored toggle; no per-song preset loading in a DAW | off |
 | EQ type | Winamp 4Front EQ, Constant-Q EQ | Winamp 4Front EQ |
 | Frequency bands | Winamp frequency bands, ISO Standard frequency bands | Winamp frequency bands |
-| Use limiter | on, off | on |
+| Use limiter (4Front engine only) | on, off | on |
 | Preamp & Bands 1-10 | -12.0 dB to +12.0 dB (64 Winamp steps) | +0.0 dB (step 31) |
 | Presets | 18 built-in Winamp presets, Default, Load/Save `.eqf` / `Winamp.q1` | Flat |
 | Skin | Load a skin's `eqmain.bmp`, or the default classic skin | default |
 | Windowshade mode | Normal (275 x 116), Shaded (275 x 14) | Normal |
 | Size | 1x to 5x | 2x |
 
-Every audio option (ON, AUTO, EQ type, Frequency bands, Use limiter, Preamp, and all 10 bands) is a host parameter, so it saves with the project and can be automated.
+Every host option (ON, AUTO, EQ type, Frequency bands, Use limiter, Preamp, and all 10 bands) is a host parameter, so it saves with the project and can be automated.
 
 ## Build
+
+Requires CMake 3.22+, Git and a C++20 compiler (Xcode command-line tools on macOS or Visual Studio 2022 C++ tools on Windows). CMake downloads JUCE 8.0.9 and Catch2 3.9.1.
 
 GitHub Actions builds a universal macOS VST3 and a 64-bit Windows VST3. On each platform it runs the unit tests and `pluginval`, then uploads the zipped bundle as an artifact. To build by hand:
 
 ```sh
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release --parallel
 ctest --test-dir build -C Release --output-on-failure
 ```
 
+Outputs are in `build/WinampClassicEqualizer_artefacts/Release/VST3/`. Add `-DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0` for a universal macOS build, or `-A x64` with the Visual Studio generator on Windows.
+
 The unit tests cover the core in `Source/Core` and need no JUCE.
 
 ## Install
+
+1. Download and install [OpenVST Manager](https://github.com/alanmarcero/alan-m-OpenVSTManager/releases/latest) for macOS or Windows.
+2. Open the manager and refresh the catalog.
+3. Choose **Winamp Classic Equalizer**, select **VST3**, and install.
+4. Rescan plugins in your DAW. If you chose a custom install folder, add it to the DAW's search paths.
+
+Release packages are **VST3 only**, for macOS 11+ (Apple Silicon/Intel universal) and Windows x64.
 
 Download the ZIP for your platform from [GitHub Releases](https://github.com/alanmarcero/winamp-classic-equalizer-vst/releases/latest), then unzip it. Tagged releases publish only after unit tests and pluginval pass on both platforms.
 
