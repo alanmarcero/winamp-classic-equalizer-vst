@@ -3,6 +3,7 @@
 #include "EqGain.h"
 
 #include <algorithm>
+#include <cmath>
 #include <ranges>
 
 namespace wce {
