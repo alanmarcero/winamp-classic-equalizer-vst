@@ -17,6 +17,7 @@ EqualizerEditor::EqualizerEditor(EqualizerProcessor& owner)
     , processor_(owner)
 {
     settingsButton_.onClick = [this] { showOptionsMenu(); };
+    settingsButton_.setButtonText("EQ Options & Presets");
     addAndMakeVisible(settingsButton_);
 
     versionLabel_.setText("v" JucePlugin_VersionString, juce::dontSendNotification);
@@ -103,7 +104,7 @@ void EqualizerEditor::mouseDrag(const juce::MouseEvent& event)
     if (!result.statusText.empty())
         settingsButton_.setButtonText(result.statusText);
     else
-        settingsButton_.setButtonText("Settings");
+        settingsButton_.setButtonText("EQ Options & Presets");
 
     lastSettings_ = settings;
     renderImage();
@@ -115,7 +116,7 @@ void EqualizerEditor::mouseUp(const juce::MouseEvent& event)
     if (!dragging_)
         return;
     dragging_ = false;
-    settingsButton_.setButtonText("Settings");
+    settingsButton_.setButtonText("EQ Options & Presets");
 
     auto settings = params::readSettings(processor_.parameters);
     const auto pt = toWinampCoords(event.getPosition());

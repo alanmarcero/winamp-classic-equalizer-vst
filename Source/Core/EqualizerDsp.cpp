@@ -69,10 +69,19 @@ void EqualizerDsp::process(std::span<float> left, std::span<float> right, int nu
         for (float& sample : span)
             sample *= preamp;
 
-        if (settings.type == EqType::FourFront)
+        if (settings.type == EqType::FourFront) {
             fourFront_[static_cast<std::size_t>(ch)].processChannel(span, settings.limiter);
-        else
+        } else {
             constantQ_[static_cast<std::size_t>(ch)].processChannel(span);
+            if (settings.limiter) {
+                for (float& sample : span) {
+                    const float mag = std::abs(sample);
+                    if (mag > 0.930f) {
+                        sample = std::copysign(0.930f + 0.06f * std::tanh((mag - 0.930f) / 0.06f), sample);
+                    }
+                }
+            }
+        }
     }
 }
 

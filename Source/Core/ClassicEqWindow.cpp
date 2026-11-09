@@ -193,7 +193,11 @@ std::string ClassicEqWindow::formatSliderStatus(int which, int pos, FrequencyBan
                             : kWinampLabels[static_cast<std::size_t>(idx)];
     const float db = songtickerDb(pos);
     char buffer[64] {};
-    std::snprintf(buffer, sizeof(buffer), "EQ: %s: %s%.1f dB", label, db >= 0.0f ? "+" : "", static_cast<double>(db));
+    if (pos == kSliderCenter) {
+        std::snprintf(buffer, sizeof(buffer), "EQ: %s: 0.0 dB [DETENT]", label);
+    } else {
+        std::snprintf(buffer, sizeof(buffer), "EQ: %s: %s%.1f dB", label, db >= 0.0f ? "+" : "", static_cast<double>(db));
+    }
     return std::string(buffer);
 }
 

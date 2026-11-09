@@ -67,6 +67,10 @@ if(WCE_BUILD_PLUGIN)
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags
             juce::juce_recommended_warning_flags)
+
+    add_executable(wce_capture tools/capture.cpp)
+    target_include_directories(wce_capture PRIVATE Source/Plugin Source/Core)
+    target_link_libraries(wce_capture PRIVATE WinampClassicEqualizer classic_eq_core juce::juce_audio_utils)
 endif()
 
 if(WCE_BUILD_TESTS)
