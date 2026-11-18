@@ -4,7 +4,7 @@
 
 A familiar 10-band equalizer for shaping tracks in a DAW. Winamp Classic Equalizer brings the look and hands-on feel of Winamp’s original equalizer to music production, with the controls needed for quick tone changes and detailed balancing.
 
-![Winamp Classic Equalizer](assets/native-ui.png)
+![Winamp Classic Equalizer](docs/screenshots/preview.png)
 
 ## Features
 
