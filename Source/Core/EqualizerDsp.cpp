@@ -30,8 +30,11 @@ void EqualizerDsp::syncConfiguration(const EqSettings& settings)
         // eq_dosamples_4front passes (float)srate to eq10_setup.
         const double rateFor4Front = static_cast<double>(static_cast<float>(sampleRate_));
         for (int ch = 0; ch < kMaxChannels; ++ch) {
-            fourFront_[static_cast<std::size_t>(ch)].setup(rateFor4Front, settings.frequencies);
-            constantQ_[static_cast<std::size_t>(ch)].reset(sampleRate_, settings.frequencies);
+            if (settings.type == EqType::FourFront) {
+                fourFront_[static_cast<std::size_t>(ch)].setup(rateFor4Front, settings.frequencies);
+            } else {
+                constantQ_[static_cast<std::size_t>(ch)].reset(sampleRate_, settings.frequencies);
+            }
         }
         activeSampleRate_ = sampleRate_;
         activeFrequencies_ = settings.frequencies;
@@ -40,8 +43,11 @@ void EqualizerDsp::syncConfiguration(const EqSettings& settings)
 
     if (bandsChanged) {
         for (int ch = 0; ch < kMaxChannels; ++ch) {
-            fourFront_[static_cast<std::size_t>(ch)].setBandsFromSliders(settings.bands);
-            constantQ_[static_cast<std::size_t>(ch)].setBandsFromSliders(settings.bands, settings.frequencies);
+            if (settings.type == EqType::FourFront) {
+                fourFront_[static_cast<std::size_t>(ch)].setBandsFromSliders(settings.bands);
+            } else {
+                constantQ_[static_cast<std::size_t>(ch)].setBandsFromSliders(settings.bands, settings.frequencies);
+            }
         }
         activeBands_ = settings.bands;
     }
@@ -67,8 +73,10 @@ void EqualizerDsp::process(std::span<float> left, std::span<float> right, int nu
 
     for (int ch = 0; ch < channels; ++ch) {
         auto span = channelSpans[static_cast<std::size_t>(ch)];
-        for (float& sample : span)
-            sample *= preamp;
+        if (std::abs(preamp - 1.0f) > 1.0e-6f) {
+            for (float& sample : span)
+                sample *= preamp;
+        }
 
         if (settings.type == EqType::FourFront) {
             fourFront_[static_cast<std::size_t>(ch)].processChannel(span, settings.limiter);
