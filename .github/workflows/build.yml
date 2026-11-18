@@ -69,6 +69,17 @@ jobs:
       - name: Unit tests
         run: ctest --test-dir build -C Release --output-on-failure
 
+      - name: Capture preview screenshot
+        continue-on-error: true
+        run: ./build/Release/wce_capture.exe docs/screenshots/preview.png
+
+      - name: Upload preview screenshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-screenshot
+          path: docs/screenshots/preview.png
+          if-no-files-found: ignore
+
       - name: Validate with pluginval
         run: |
           Invoke-WebRequest -Uri https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Windows.zip -OutFile pluginval.zip
@@ -101,5 +112,34 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           files: WinampClassicEqualizer-VST3-*.zip
+          body: '![Winamp Classic Equalizer](https://raw.githubusercontent.com/alanmarcero/winamp-classic-equalizer-vst/${{ github.ref_name }}/docs/screenshots/preview.png)'
           fail_on_unmatched_files: true
           generate_release_notes: true
+
+  update-preview:
+    # Refreshes docs/screenshots/preview.png (the image OpenVST Manager shows) from the
+    # real editor capture whenever UI-affecting files change on main.
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    needs: windows
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: preview-screenshot
+          path: preview
+      - name: Commit refreshed preview if changed
+        run: |
+          git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -qE '^(Source|assets|Tools|tools|Tests)/' || { echo "No UI changes; keeping preview."; exit 0; }
+          cp preview/preview.png docs/screenshots/preview.png
+          if git diff --quiet -- docs/screenshots/preview.png; then echo "Preview unchanged."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots/preview.png
+          git commit -m "docs: refresh preview screenshot [skip ci]"
+          git push
