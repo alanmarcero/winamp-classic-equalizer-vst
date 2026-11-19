@@ -2,6 +2,10 @@
 
 [Install with OpenVST Manager](https://github.com/alanmarcero/alan-m-OpenVSTManager/releases/latest)
 
+## Beta
+
+All of these plugins are in beta. The macOS and Linux builds are not up to date, so the Windows build is the one to use for now. A plugin can change dramatically from one release to the next, but the goal is for each one to keep getting better.
+
 A familiar 10-band equalizer for shaping tracks in a DAW. Winamp Classic Equalizer brings the look and hands-on feel of Winamp’s original equalizer to music production, with the controls needed for quick tone changes and detailed balancing.
 
 ![Winamp Classic Equalizer](docs/screenshots/preview.png)
