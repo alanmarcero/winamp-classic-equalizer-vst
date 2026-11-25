@@ -41,3 +41,20 @@ TEST_CASE("defaultEqMainSkin matches Eqmain.bmp dimensions and spline gradient c
     CHECK(winampSkin.pixelAt(115, 312) == wce::Rgb { 42, 154, 22 });
     CHECK(winampSkin.pixelAt(0, 314) == wce::Rgb { 186, 203, 221 });
 }
+
+TEST_CASE("parseBmp rejects INT32_MIN height without signed overflow")
+{
+    std::array<std::uint8_t, 54> bmp {};
+    bmp[0] = 'B';
+    bmp[1] = 'M';
+    bmp[10] = 54;
+    bmp[14] = 40;
+    bmp[18] = 1; // width = 1
+    bmp[22] = 0x00;
+    bmp[23] = 0x00;
+    bmp[24] = 0x00;
+    bmp[25] = 0x80; // rawHeight = INT32_MIN
+    bmp[26] = 1;    // planes = 1
+    bmp[28] = 24;   // bpp = 24
+    CHECK(!wce::parseBmp(bmp).has_value());
+}

@@ -123,14 +123,15 @@ std::optional<SkinBitmap> parseBmp(std::span<const std::uint8_t> bytes)
     const std::int32_t width = readS32(bytes, 18);
     const std::int32_t rawHeight = readS32(bytes, 22);
     const bool topDown = rawHeight < 0;
-    const std::int32_t height = std::abs(rawHeight);
+    const std::int64_t absHeight = std::abs(static_cast<std::int64_t>(rawHeight));
     const std::uint16_t planes = readU16(bytes, 26);
     const std::uint16_t bpp = readU16(bytes, 28);
     const std::uint32_t compression = readU32(bytes, 30);
     const std::uint32_t colorsUsed = readU32(bytes, 46);
 
-    if (width <= 0 || height <= 0 || width > 4096 || height > 4096 || planes != 1)
+    if (width <= 0 || absHeight <= 0 || width > 4096 || absHeight > 4096 || planes != 1)
         return std::nullopt;
+    const auto height = static_cast<std::int32_t>(absHeight);
     if (compression != 0 && compression != 3)
         return std::nullopt;
     if (bpp != 1 && bpp != 4 && bpp != 8 && bpp != 24 && bpp != 32)
