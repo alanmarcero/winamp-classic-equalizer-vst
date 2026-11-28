@@ -117,7 +117,7 @@ std::optional<SkinBitmap> parseBmp(std::span<const std::uint8_t> bytes)
 
     const std::uint32_t dataOffset = readU32(bytes, 10);
     const std::uint32_t headerSize = readU32(bytes, 14);
-    if (headerSize < 40 || bytes.size() < 14 + headerSize)
+    if (headerSize < 40 || headerSize > bytes.size() - 14)
         return std::nullopt;
 
     const std::int32_t width = readS32(bytes, 18);
@@ -141,8 +141,8 @@ std::optional<SkinBitmap> parseBmp(std::span<const std::uint8_t> bytes)
     if (bpp <= 8) {
         const std::size_t maxEntries = std::size_t(1) << bpp;
         const std::size_t count = (colorsUsed > 0 && colorsUsed <= maxEntries) ? colorsUsed : maxEntries;
-        const std::size_t paletteOffset = 14 + headerSize;
-        if (bytes.size() < paletteOffset + count * 4)
+        const std::size_t paletteOffset = std::size_t { 14 } + static_cast<std::size_t>(headerSize);
+        if (paletteOffset > bytes.size() || count > (bytes.size() - paletteOffset) / 4)
             return std::nullopt;
         for (std::size_t i = 0; i < count; ++i) {
             const std::size_t p = paletteOffset + i * 4;

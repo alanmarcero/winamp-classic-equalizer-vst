@@ -209,34 +209,55 @@ void EqualizerEditor::renderImage()
 void EqualizerEditor::showPresetsMenu()
 {
     juce::PopupMenu menu;
+    const juce::Component::SafePointer<EqualizerEditor> safe(this);
 
     juce::PopupMenu loadPresetMenu;
     for (const auto& preset : wce::builtInPresets()) {
-        loadPresetMenu.addItem(preset.name, [this, preset] { applyPreset(preset); });
+        loadPresetMenu.addItem(preset.name, [safe, preset] {
+            if (safe != nullptr)
+                safe->applyPreset(preset);
+        });
     }
     const auto userPresets = processor_.userPresets();
     if (!userPresets.empty()) {
         loadPresetMenu.addSeparator();
         for (const auto& preset : userPresets) {
-            loadPresetMenu.addItem(preset.name, [this, preset] { applyPreset(preset); });
+            loadPresetMenu.addItem(preset.name, [safe, preset] {
+                if (safe != nullptr)
+                    safe->applyPreset(preset);
+            });
         }
     }
 
     juce::PopupMenu loadMenu;
     loadMenu.addSubMenu("Preset", loadPresetMenu);
-    loadMenu.addItem("Default", [this] { applyPreset(processor_.defaultPreset()); });
+    loadMenu.addItem("Default", [safe] {
+        if (safe != nullptr)
+            safe->applyPreset(safe->processor_.defaultPreset());
+    });
     loadMenu.addSeparator();
-    loadMenu.addItem("From EQF...", [this] { loadEqfFile(); });
+    loadMenu.addItem("From EQF...", [safe] {
+        if (safe != nullptr)
+            safe->loadEqfFile();
+    });
     menu.addSubMenu("Load", loadMenu);
 
     juce::PopupMenu saveMenu;
-    saveMenu.addItem("Preset...", [this] { saveEqfFile(true); });
-    saveMenu.addItem("Default", [this] {
-        const auto current = params::readSettings(processor_.parameters);
-        processor_.saveDefaultPreset(current.bands, current.preamp);
+    saveMenu.addItem("Preset...", [safe] {
+        if (safe != nullptr)
+            safe->saveEqfFile(true);
+    });
+    saveMenu.addItem("Default", [safe] {
+        if (safe == nullptr)
+            return;
+        const auto current = params::readSettings(safe->processor_.parameters);
+        safe->processor_.saveDefaultPreset(current.bands, current.preamp);
     });
     saveMenu.addSeparator();
-    saveMenu.addItem("To EQF...", [this] { saveEqfFile(false); });
+    saveMenu.addItem("To EQF...", [safe] {
+        if (safe != nullptr)
+            safe->saveEqfFile(false);
+    });
     menu.addSubMenu("Save", saveMenu);
 
     juce::PopupMenu deleteMenu;
@@ -244,64 +265,90 @@ void EqualizerEditor::showPresetsMenu()
         deleteMenu.addItem("No saved presets", false, false, nullptr);
     } else {
         for (const auto& preset : userPresets) {
-            deleteMenu.addItem(preset.name, [this, name = preset.name] { processor_.deleteUserPreset(name); });
+            deleteMenu.addItem(preset.name, [safe, name = preset.name] {
+                if (safe != nullptr)
+                    safe->processor_.deleteUserPreset(name);
+            });
         }
     }
     menu.addSubMenu("Delete", deleteMenu);
 
     const int scale = processor_.editorScale.load();
     const auto anchor = localPointToGlobal(juce::Point<int>(218 * scale, 19 * scale));
-    menu.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({ anchor.x, anchor.y, 1, 1 }));
+    menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this).withTargetScreenArea({ anchor.x, anchor.y, 1, 1 }));
 }
 
 void EqualizerEditor::showOptionsMenu()
 {
     const auto settings = params::readSettings(processor_.parameters);
+    const juce::Component::SafePointer<EqualizerEditor> safe(this);
     juce::PopupMenu menu;
 
-    menu.addItem("Equalizer enabled (ON)", true, settings.enabled, [this, enabled = settings.enabled] {
-        setParameterIndex(params::kEnabled, enabled ? 0 : 1);
+    menu.addItem("Equalizer enabled (ON)", true, settings.enabled, [safe, enabled = settings.enabled] {
+        if (safe != nullptr)
+            safe->setParameterIndex(params::kEnabled, enabled ? 0 : 1);
     });
-    menu.addItem("Auto-load (AUTO)", true, settings.autoLoad, [this, autoLoad = settings.autoLoad] {
-        setParameterIndex(params::kAutoLoad, autoLoad ? 0 : 1);
+    menu.addItem("Auto-load (AUTO)", true, settings.autoLoad, [safe, autoLoad = settings.autoLoad] {
+        if (safe != nullptr)
+            safe->setParameterIndex(params::kAutoLoad, autoLoad ? 0 : 1);
     });
     menu.addSeparator();
 
     addChoiceMenu(menu, params::kEqType, "EQ type");
     addChoiceMenu(menu, params::kFrequencyBands, "Frequency bands");
-    menu.addItem("Use limiter", true, settings.limiter, [this, limiter = settings.limiter] {
-        setParameterIndex(params::kLimiter, limiter ? 0 : 1);
+    menu.addItem("Use limiter", true, settings.limiter, [safe, limiter = settings.limiter] {
+        if (safe != nullptr)
+            safe->setParameterIndex(params::kLimiter, limiter ? 0 : 1);
     });
-    menu.addItem("Windowshade mode", true, eqWindow_.windowshade(), [this] {
-        eqWindow_.setWindowshade(!eqWindow_.windowshade());
-        processor_.windowshade = eqWindow_.windowshade();
-        syncFromProcessor(true);
-        updateEditorSize();
+    menu.addItem("Windowshade mode", true, eqWindow_.windowshade(), [safe] {
+        if (safe == nullptr)
+            return;
+        safe->eqWindow_.setWindowshade(!safe->eqWindow_.windowshade());
+        safe->processor_.windowshade = safe->eqWindow_.windowshade();
+        safe->syncFromProcessor(true);
+        safe->updateEditorSize();
     });
     menu.addSeparator();
 
     juce::PopupMenu presets;
     for (const auto& preset : wce::builtInPresets()) {
-        presets.addItem(preset.name, [this, preset] { applyPreset(preset); });
+        presets.addItem(preset.name, [safe, preset] {
+            if (safe != nullptr)
+                safe->applyPreset(preset);
+        });
     }
     const auto userPresets = processor_.userPresets();
     if (!userPresets.empty()) {
         presets.addSeparator();
         for (const auto& preset : userPresets) {
-            presets.addItem(preset.name, [this, preset] { applyPreset(preset); });
+            presets.addItem(preset.name, [safe, preset] {
+                if (safe != nullptr)
+                    safe->applyPreset(preset);
+            });
         }
     }
     presets.addSeparator();
-    presets.addItem("Load from EQF...", [this] { loadEqfFile(); });
-    presets.addItem("Save to EQF...", [this] { saveEqfFile(true); });
+    presets.addItem("Load from EQF...", [safe] {
+        if (safe != nullptr)
+            safe->loadEqfFile();
+    });
+    presets.addItem("Save to EQF...", [safe] {
+        if (safe != nullptr)
+            safe->saveEqfFile(true);
+    });
     menu.addSubMenu("Presets", presets);
 
     juce::PopupMenu skin;
-    skin.addItem("Load eqmain.bmp...", [this] { chooseSkinBmp(); });
-    skin.addItem("Default skin", [this] {
-        processor_.clearCustomSkin();
-        eqWindow_.setCustomSkin(std::nullopt);
-        syncFromProcessor(true);
+    skin.addItem("Load eqmain.bmp...", [safe] {
+        if (safe != nullptr)
+            safe->chooseSkinBmp();
+    });
+    skin.addItem("Default skin", [safe] {
+        if (safe == nullptr)
+            return;
+        safe->processor_.clearCustomSkin();
+        safe->eqWindow_.setCustomSkin(std::nullopt);
+        safe->syncFromProcessor(true);
     });
     menu.addSubMenu("Skin", skin);
 
@@ -309,7 +356,10 @@ void EqualizerEditor::showOptionsMenu()
     std::ranges::for_each(
         std::views::iota(EqualizerProcessor::kMinScale, EqualizerProcessor::kMaxScale + 1), [&](int scale) {
             size.addItem(juce::String(scale) + "x", true, processor_.editorScale == scale,
-                         [this, scale] { setScale(scale); });
+                         [safe, scale] {
+                             if (safe != nullptr)
+                                 safe->setScale(scale);
+                         });
         });
     menu.addSubMenu("Size", size);
 
@@ -319,10 +369,14 @@ void EqualizerEditor::showOptionsMenu()
 void EqualizerEditor::addChoiceMenu(juce::PopupMenu& menu, const char* parameterId, const juce::String& title)
 {
     const auto* parameter = dynamic_cast<juce::AudioParameterChoice*>(processor_.parameters.getParameter(parameterId));
+    const juce::Component::SafePointer<EqualizerEditor> safe(this);
     juce::PopupMenu submenu;
     std::ranges::for_each(std::views::iota(0, parameter->choices.size()), [&](int index) {
         submenu.addItem(parameter->choices[index], true, parameter->getIndex() == index,
-                        [this, parameterId, index] { setParameterIndex(parameterId, index); });
+                        [safe, parameterId, index] {
+                            if (safe != nullptr)
+                                safe->setParameterIndex(parameterId, index);
+                        });
     });
     menu.addSubMenu(title, submenu);
 }
@@ -348,7 +402,9 @@ void EqualizerEditor::loadEqfFile()
 {
     chooser_ = std::make_unique<juce::FileChooser>("Load EQ Preset (.eqf, .q1)", juce::File {}, "*.eqf;*.q1");
     chooser_->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                          [this](const juce::FileChooser& chooser) {
+                          [safe = juce::Component::SafePointer<EqualizerEditor>(this)](const juce::FileChooser& chooser) {
+                              if (safe == nullptr)
+                                  return;
                               const auto file = chooser.getResult();
                               if (file == juce::File {})
                                   return;
@@ -359,12 +415,12 @@ void EqualizerEditor::loadEqfFile()
                                   { static_cast<const std::uint8_t*>(block.getData()), block.getSize() });
                               if (presets.empty())
                                   return;
-                              applyPreset(presets.front());
+                              safe->applyPreset(presets.front());
                               for (const auto& preset : presets) {
                                   const auto name = (presets.size() == 1 && preset.name == "Entry1")
                                                         ? file.getFileNameWithoutExtension().toStdString()
                                                         : preset.name;
-                                  processor_.addUserPreset({ name, preset.bands, preset.preamp });
+                                  safe->processor_.addUserPreset({ name, preset.bands, preset.preamp });
                               }
                           });
 }
@@ -374,17 +430,19 @@ void EqualizerEditor::saveEqfFile(bool addToLibrary)
     chooser_ = std::make_unique<juce::FileChooser>("Save EQ Preset (.eqf)", juce::File {}, "*.eqf");
     chooser_->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles
                               | juce::FileBrowserComponent::warnAboutOverwriting,
-                          [this, addToLibrary](const juce::FileChooser& chooser) {
+                          [safe = juce::Component::SafePointer<EqualizerEditor>(this), addToLibrary](const juce::FileChooser& chooser) {
+                              if (safe == nullptr)
+                                  return;
                               const auto file = chooser.getResult();
                               if (file == juce::File {})
                                   return;
-                              const auto current = params::readSettings(processor_.parameters);
+                              const auto current = params::readSettings(safe->processor_.parameters);
                               const auto bytes = wce::serializeSingleEqf(current.bands, current.preamp, "Entry1");
                               file.replaceWithData(bytes.data(), bytes.size());
                               if (addToLibrary) {
                                   const auto name = file.getFileNameWithoutExtension().toStdString();
                                   if (!name.empty())
-                                      processor_.addUserPreset({ name, current.bands, current.preamp });
+                                      safe->processor_.addUserPreset({ name, current.bands, current.preamp });
                               }
                           });
 }
@@ -393,17 +451,19 @@ void EqualizerEditor::chooseSkinBmp()
 {
     chooser_ = std::make_unique<juce::FileChooser>("Load eqmain.bmp", juce::File {}, "*.bmp");
     chooser_->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
-                          [this](const juce::FileChooser& chooser) {
+                          [safe = juce::Component::SafePointer<EqualizerEditor>(this)](const juce::FileChooser& chooser) {
+                              if (safe == nullptr)
+                                  return;
                               const auto file = chooser.getResult();
                               if (file == juce::File {})
                                   return;
                               juce::MemoryBlock block;
                               if (!file.loadFileAsData(block))
                                   return;
-                              if (processor_.setCustomSkinBmp(
+                              if (safe->processor_.setCustomSkinBmp(
                                       { static_cast<const std::uint8_t*>(block.getData()), block.getSize() })) {
-                                  eqWindow_.setCustomSkin(processor_.customSkin());
-                                  syncFromProcessor(true);
+                                  safe->eqWindow_.setCustomSkin(safe->processor_.customSkin());
+                                  safe->syncFromProcessor(true);
                               }
                           });
 }

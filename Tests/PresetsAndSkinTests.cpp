@@ -58,3 +58,20 @@ TEST_CASE("parseBmp rejects INT32_MIN height without signed overflow")
     bmp[28] = 24;   // bpp = 24
     CHECK(!wce::parseBmp(bmp).has_value());
 }
+
+TEST_CASE("parseBmp rejects 32-bit headerSize wraparound")
+{
+    std::array<std::uint8_t, 54> bmp {};
+    bmp[0] = 'B';
+    bmp[1] = 'M';
+    bmp[10] = 54;
+    bmp[14] = 0xF2;
+    bmp[15] = 0xFF;
+    bmp[16] = 0xFF;
+    bmp[17] = 0xFF; // 14 + 0xFFFFFFF2 wraps uint32_t to 0
+    bmp[18] = 1;
+    bmp[22] = 1;
+    bmp[26] = 1;
+    bmp[28] = 8;
+    CHECK(!wce::parseBmp(bmp).has_value());
+}
